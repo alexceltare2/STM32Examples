@@ -7,22 +7,16 @@
 * The code is provided "as is" with no liability.
 */
 
-//Change depending on your MCU datasheet
-#define DEVICE_ID_REG 0x0BFA070C
-#define UID0 0x0BFA0700
-#define UID1 0x0BFA0704
-#define UID2 0x0BFA0708
-
 void setup() {
   Serial.begin(115200);
   while (!Serial); // Wait for Serial to be ready
 
-  Serial.println("STM32U385 Device Identifiers:");
+  Serial.printf("%s Device Identifiers:\n", BOARD_NAME);
 
   // Unique Device ID (96 bits / 12 bytes)
-  uint32_t uid0 = *(uint32_t*)UID0;
-  uint32_t uid1 = *(uint32_t*)UID1;
-  uint32_t uid2 = *(uint32_t*)UID2;
+  uint32_t uid0 = HAL_GetUIDw0();
+  uint32_t uid1 = HAL_GetUIDw1();
+  uint32_t uid2 = HAL_GetUIDw2();
 
   Serial.print("UID: ");
   Serial.print(uid2, HEX); Serial.print("-");
@@ -47,14 +41,8 @@ void setup() {
     if (i < 5) Serial.print(":");
   }
   Serial.println();
-
-  // Device ID (DEV_ID) and Revision ID (REV_ID)
-  uint32_t dev_id_reg = *(uint32_t*)DEVICE_ID_REG;
-  uint16_t dev_id = dev_id_reg & 0x0FFF;
-  uint16_t rev_id = (dev_id_reg >> 16) & 0xFFFF;
-
-  Serial.print("Device ID: 0x"); Serial.println(dev_id, HEX);
-  Serial.print("Revision ID: 0x"); Serial.println(rev_id, HEX);
+  Serial.printf("Device ID: 0x%x\n", HAL_GetDEVID());
+  Serial.printf("Revision ID: 0x%x\n", HAL_GetREVID());
 }
 
 void loop() {

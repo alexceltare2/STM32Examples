@@ -7,8 +7,12 @@
 * The code is provided "as is" with no liability.
 */
 
+#include "stm32yyxx_ll_rcc.h"
+#include "IWatchdog.h"
+
 #define USER_BTN_PIN USER_BTN  // Adjust this for your board
 
+// Enumerator for combining reset flag bits into one byte then display them
 enum reset_reason {
   UNKNOWN_RESET          = 0,
   BROWN_OUT              = 1 << 0,
@@ -21,23 +25,13 @@ enum reset_reason {
 };
 
 reset_reason last_reset_reason = UNKNOWN_RESET;
-uint32_t saved_reset_flags = 0;
 
-void Reset_My_MCU() {
+void Reset_My_MCU() { //There are a few reset conditions. Keep the one you wish to use and comment out the others.
   // Bellow is the Software reset condition
   //NVIC_SystemReset(); 
 
   // Bellow is the Watchdog Timer reset condition
-  IWDG->KR = 0x5555;
-
-  // Set prescaler and reload (for short timeout ~100ms)
-  IWDG->PR = 0;          // Prescaler = /4
-  IWDG->RLR = 100;       // Reload value (for short timeout)
-
-  // Start the watchdog
-  IWDG->KR = 0xCCCC;
-
-  // Don't refresh it — let it timeout
+  IWatchdog.begin(1000); //1ms tick then reset
   while (1);  // Wait for reset
 }
 
@@ -47,19 +41,16 @@ void setup() {
   Serial.begin(115200);
   while (!Serial);  // Wait for Serial
 
-  // Save and analyze the reset flags
-  saved_reset_flags = RCC->CSR;
-
-  if (saved_reset_flags & RCC_CSR_BORRSTF)         last_reset_reason = (reset_reason)(last_reset_reason | BROWN_OUT);
-  if (saved_reset_flags & RCC_CSR_PINRSTF)         last_reset_reason = (reset_reason)(last_reset_reason | NRST_PIN);
-  if (saved_reset_flags & RCC_CSR_SFTRSTF)         last_reset_reason = (reset_reason)(last_reset_reason | SOFTWARE_RST);
-  if (saved_reset_flags & RCC_CSR_IWDGRSTF)        last_reset_reason = (reset_reason)(last_reset_reason | INDEPENDENT_WDG);
-  if (saved_reset_flags & RCC_CSR_WWDGRSTF)        last_reset_reason = (reset_reason)(last_reset_reason | WINDOW_WDG);
-  if (saved_reset_flags & RCC_CSR_LPWRRSTF)        last_reset_reason = (reset_reason)(last_reset_reason | LOW_POWER);
-  if (saved_reset_flags & RCC_CSR_OBLRSTF)         last_reset_reason = (reset_reason)(last_reset_reason | OPTION_BYTE_LOADER);
+  if (LL_RCC_IsActiveFlag_BORRST())     last_reset_reason = (reset_reason)(last_reset_reason | BROWN_OUT);
+  if (LL_RCC_IsActiveFlag_PINRST())     last_reset_reason = (reset_reason)(last_reset_reason | NRST_PIN);
+  if (LL_RCC_IsActiveFlag_SFTRST())     last_reset_reason = (reset_reason)(last_reset_reason | SOFTWARE_RST);
+  if (LL_RCC_IsActiveFlag_IWDGRST())    last_reset_reason = (reset_reason)(last_reset_reason | INDEPENDENT_WDG);
+  if (LL_RCC_IsActiveFlag_WWDGRST())    last_reset_reason = (reset_reason)(last_reset_reason | WINDOW_WDG);
+  if (LL_RCC_IsActiveFlag_LPWRRST())    last_reset_reason = (reset_reason)(last_reset_reason | LOW_POWER);
+  if (LL_RCC_IsActiveFlag_OBLRST())     last_reset_reason = (reset_reason)(last_reset_reason | OPTION_BYTE_LOADER);
 
   // Clear reset flags
-  RCC->CSR |= RCC_CSR_RMVF;
+  LL_RCC_ClearResetFlags();
 }
 
 void loop() {
