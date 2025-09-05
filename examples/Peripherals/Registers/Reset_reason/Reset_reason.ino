@@ -80,6 +80,8 @@ void setup() {
 #endif
 #if defined(PWR_CSR_WUF)
   if (LL_PWR_IsActiveFlag_WU()) last_reset_reason = (reset_reason)(last_reset_reason | WAKEUP);
+#elif defined (PWR_WUSR_WUF10)
+  if (LL_PWR_IsActiveFlag_WU1()||LL_PWR_IsActiveFlag_WU2()||LL_PWR_IsActiveFlag_WU3()||LL_PWR_IsActiveFlag_WU4()||LL_PWR_IsActiveFlag_WU5()||LL_PWR_IsActiveFlag_WU6()||LL_PWR_IsActiveFlag_WU7()||LL_PWR_IsActiveFlag_WU8()||LL_PWR_IsActiveFlag_WU9()||LL_PWR_IsActiveFlag_WU10()) last_reset_reason = (reset_reason)(last_reset_reason | WAKEUP);
 #endif
 
 
@@ -94,6 +96,8 @@ void setup() {
 #endif
 #if defined(PWR_CSR_WUF)
   LL_PWR_ClearFlag_WU();
+#elif defined (PWR_WUSR_WUF10)
+  LL_PWR_ClearFlag_WU1();LL_PWR_ClearFlag_WU2();LL_PWR_ClearFlag_WU3();LL_PWR_ClearFlag_WU4();LL_PWR_ClearFlag_WU5();LL_PWR_ClearFlag_WU6();LL_PWR_ClearFlag_WU7();LL_PWR_ClearFlag_WU8();LL_PWR_ClearFlag_WU9();LL_PWR_ClearFlag_WU10();
 #endif
 }
 
